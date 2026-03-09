@@ -20,6 +20,8 @@ Facilitates model files audit and search
 
 Use [ComfyUI-Manager](https://github.com/Comfy-Org/ComfyUI-Manager/) to install `ComfyUI-ModelInspect`.
 
+* https://registry.comfy.org/publishers/idlesign/nodes/ComfyUI-ModelInspect
+
 ### Manual
 
 1. Step into `ComfyUI/custom_nodes` directory
