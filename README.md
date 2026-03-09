@@ -4,7 +4,7 @@ https://github.com/idlesign/ComfyUI-ModelInspect
 
 Facilitates model files audit and search
 
-<img src="docs/screenshot.png" width="300">
+<img src="docs/screenshot.png" width="600">
 
 ## Features
 
