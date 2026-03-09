@@ -1,0 +1,17 @@
+
+.moinspect-table a.p-button {
+    text-decoration: none !important;
+    box-shadow: none !important;
+}
+
+.moinspect-table th {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 3px solid #444;
+}
+
+.moinspect-table td {
+    padding: 8px;
+    border-bottom: 1px solid #333;
+}
+
