@@ -1,4 +1,4 @@
-# iamreader changelog
+# ComfyUI-ModelInspect changelog
 
 ## v0.2.0 [2026-03-09]
 * ++ Add basic subgraph support.
