@@ -34,9 +34,30 @@ export function createButton(label, icon, func) {
 }
 
 export function selectNode(id) {
-    const node = app.graph.getNodeById(id);
 
-    if (node) {
+    const findNodeRecursively = (graph) => {
+        let node = graph.getNodeById(id);
+        if (node) return { node, graph };
+
+        for (const n of (graph._nodes || [])) {
+            if (n.subgraph) {
+                const found = findNodeRecursively(n.subgraph);
+                if (found) return found;
+            }
+        }
+        return null;
+    };
+
+    const result = findNodeRecursively(app.graph);
+
+    if (result) {
+        const { node, graph } = result;
+
+        // handle subgraph
+        if (app.canvas.graph !== graph) {
+            app.canvas.setGraph(graph);
+        }
+
         app.canvas.deselectAllNodes();
         app.canvas.selectNode(node);
 

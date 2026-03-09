@@ -59,54 +59,62 @@ async function getSummaryItems({showAllFiles = true, ...otherOptions} = {}) {
         urlRegex = /https:\/\/[^\s$?#]+[^\s)]/g,
         urls = {};
 
-    app.graph._nodes.forEach(node => {
-        const
-            nodeId = node.id,
-            nodeType = node.type,
-            nodeTitle = node.title;
+    const processGraph = (graph) => {
+        const nodes = graph._nodes || graph.nodes || [];
 
-        if (node.widgets) {
-            node.widgets.forEach(widget => {
-                const
-                    widgetVal = widget.value,
-                    widgetType = widget.type;
+        nodes.forEach(node => {
+            const
+                nodeId = node.id,
+                nodeType = node.type,
+                nodeTitle = node.title;
 
-                if (typeof widgetVal === "string") {
+            if (node.widgets) {
+                node.widgets.forEach(widget => {
+                    const
+                        widgetVal = widget.value,
+                        widgetType = widget.type;
 
-                    switch (widgetType) {
-                        case "combo":
-                            const widgetName = widget.name;
+                    if (typeof widgetVal === "string") {
+                        switch (widgetType) {
+                            case "combo":
+                                const widgetName = widget.name;
 
-                            if (targetExtensions.some(extension => widgetVal.endsWith(extension))) {
-                                nodesModels.push({
-                                    nodeId: nodeId,
-                                    nodeType: nodeType,
-                                    nodeTitle: nodeTitle,
-                                    value: widgetVal,
-                                    label: widget.label,
-                                    type: widgetType,
-                                    name: widgetName,
-                                    path: "",
-                                    size: null,
-                                    category: categorize({nodeTitle: nodeTitle, widgetName: widgetName}),
-                                    fileName: getFileName(widgetVal),
-                                    urlProposed: "",
-                                });
-                            }
-                            break;
-                        case "customtext":
-                        case "MARKDOWN":
-                            // try to get file url from a hint node
-                            (widgetVal.match(urlRegex) || []).forEach(url => {
-                                urls[getFileName(url)] = url
-                            })
-                            break;
+                                if (targetExtensions.some(extension => widgetVal.endsWith(extension))) {
+                                    nodesModels.push({
+                                        nodeId: nodeId,
+                                        nodeType: nodeType,
+                                        nodeTitle: nodeTitle,
+                                        value: widgetVal,
+                                        label: widget.label,
+                                        type: widgetType,
+                                        name: widgetName,
+                                        path: "",
+                                        size: null,
+                                        category: categorize({nodeTitle: nodeTitle, widgetName: widgetName}),
+                                        fileName: getFileName(widgetVal),
+                                        urlProposed: "",
+                                    });
+                                }
+                                break;
+                            case "customtext":
+                            case "MARKDOWN":
+                                // try to get file url from a hint node
+                                (widgetVal.match(urlRegex) || []).forEach(url => {
+                                    urls[getFileName(url)] = url
+                                })
+                                break;
+                        }
                     }
+                });
+            }
 
-                }
-            });
-        }
-    });
+            if (node.subgraph) {
+                processGraph(node.subgraph);
+            }
+        });
+    };
+
+    processGraph(app.graph);
 
     let
         nodesFiles = [],
