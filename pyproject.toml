@@ -1,6 +1,6 @@
 [project]
 name = "ComfyUI-ModelInspect"
-version = "0.1.0"
+version = "0.1.1"
 description = "Facilitates model files audit and search"
 license = { file = "LICENSE" }
 requires-python = ">=3.11"
