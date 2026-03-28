@@ -3,23 +3,30 @@ import {app} from "../../scripts/app.js";
 import {formatSize} from "./utils.js";
 
 export async function refreshDropdowns() {
-
     const nodeDefs = await api.getNodeDefs();
 
-    app.graph._nodes.forEach(node => {
-        const def = nodeDefs[node.type];
-        if (!def || !node.widgets) return;
+    const processGraph = (graph) => {
+        if (!graph || !graph._nodes) return;
 
-        node.widgets.forEach(w => {
-            if (w.type === "combo" && def.input && def.input.required[w.name]) {
-                const enumValues = def.input.required[w.name][0];
-                if (Array.isArray(enumValues)) {
-                    w.options.values = enumValues;
-                    node.setDirtyCanvas(true, true);
-                }
+        graph._nodes.forEach(node => {
+            const def = nodeDefs[node.type];
+            if (def && node.widgets) {
+                node.widgets.forEach(w => {
+                    const inputDef = def.input?.required?.[w.name] || def.input?.optional?.[w.name];
+                    if (w.type === "combo" && Array.isArray(inputDef?.[0])) {
+                        w.options.values = inputDef[0];
+                        node.setDirtyCanvas(true, true);
+                    }
+                });
+            }
+
+            if (node.subgraph) {
+                processGraph(node.subgraph);
             }
         });
-    });
+    };
+
+    processGraph(app.graph);
 }
 
 export function createButton(label, icon, func) {
