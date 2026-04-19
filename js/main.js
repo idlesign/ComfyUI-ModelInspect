@@ -6,7 +6,7 @@ import {getFiles} from "./api.js";
 const targetExtensions = [".safetensors", ".gguf"];
 
 
-function categorize({nodeTitle = "", widgetName = "", ...otherOptions} = {}) {
+function categorize({nodeTitle = "", widgetName = "", widgetLabel = "", ...otherOptions} = {}) {
     // order matters
 
     function substr(text, substring) {
@@ -44,9 +44,22 @@ function categorize({nodeTitle = "", widgetName = "", ...otherOptions} = {}) {
     if (substr(nodeTitle, "patch")) {
         category = "model_patches"
     }
+    if (substr(nodeTitle, "upscale") || substr(widgetLabel, "upscale")) {
+        category = "latent_upscale_models"
+    }
 
-    if (category === categoryUnknown && substr(nodeTitle, "gguf")) {
-        category = "diffusion_models"
+    if (category === categoryUnknown) {
+        if (
+            substr(nodeTitle, "gguf") ||
+            (substr(widgetLabel, "audio") && substr(widgetLabel, "model")))
+        {
+            category = "diffusion_models"
+        }
+        if (substr(widgetLabel, "unet")) {
+            category = "unet"
+        } else if (substr(widgetLabel, "lora")){
+            category = "loras"
+        }
     }
 
     return category;
@@ -57,7 +70,8 @@ async function getSummaryItems({showAllFiles = true, ...otherOptions} = {}) {
     const
         nodesModels = [],
         urlRegex = /https:\/\/[^\s$?#]+[^\s)]/g,
-        urls = {};
+        urls = {},
+        namesSeen = [];
 
     const processGraph = (graph) => {
         const nodes = graph._nodes || graph.nodes || [];
@@ -77,7 +91,14 @@ async function getSummaryItems({showAllFiles = true, ...otherOptions} = {}) {
                     if (typeof widgetVal === "string") {
                         switch (widgetType) {
                             case "combo":
-                                const widgetName = widget.name;
+                                const widgetName = widget.name,
+                                      widgetLabel = widget.label,
+                                      fileName = getFileName(widgetVal);
+
+                                if (namesSeen.includes(fileName)) {
+                                    break;
+                                }
+                                namesSeen.push(fileName);
 
                                 if (targetExtensions.some(extension => widgetVal.endsWith(extension))) {
                                     nodesModels.push({
@@ -85,13 +106,17 @@ async function getSummaryItems({showAllFiles = true, ...otherOptions} = {}) {
                                         nodeType: nodeType,
                                         nodeTitle: nodeTitle,
                                         value: widgetVal,
-                                        label: widget.label,
+                                        label: widgetLabel,
                                         type: widgetType,
                                         name: widgetName,
                                         path: "",
                                         size: null,
-                                        category: categorize({nodeTitle: nodeTitle, widgetName: widgetName}),
-                                        fileName: getFileName(widgetVal),
+                                        category: categorize({
+                                            nodeTitle: nodeTitle,
+                                            widgetName: widgetName,
+                                            widgetLabel: widgetLabel,
+                                        }),
+                                        fileName: fileName,
                                         urlProposed: "",
                                     });
                                 }
